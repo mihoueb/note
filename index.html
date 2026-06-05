@@ -168,10 +168,8 @@
 
   <div class="syncbar">
     <span class="dot" id="syncDot"></span>
-    <span class="msg" id="syncMsg">同期先が未設定です（このまま使うと端末ごとの保存になります）</span>
-    <button class="mini" id="pullBtn">読み込み</button>
-    <button class="mini" id="pushBtn">保存</button>
-    <a id="toggleSettings">設定</a>
+    <span class="msg" id="syncMsg">起動中…</span>
+    <a id="toggleSettings" title="詳細設定（CSV・URL変更）">⚙</a>
   </div>
 
   <div class="panel hide" id="settings">
@@ -258,6 +256,8 @@
   var hasStorage=!!(window.storage&&window.storage.get);
   var words=[], editingId=null, filter="all", search="";
   var deck=[], deckPos=0, flipped=false, hardOnly=false;
+  // ▼ ここに同期先のURLを組み込み済み。開くと自動で読み込みます。
+  var SYNC_URL="https://script.google.com/macros/s/AKfycbyLpmeLqzPJXNCb-BkXbNWjq_mwbc2yqcJm-tnO1FNxt3kol9hwJDN8q3xZPSjxFw0kDw/exec";
   var syncUrl="";
   var $=function(id){return document.getElementById(id);};
   function esc(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -417,7 +417,7 @@
 
   function showNote(){$("tabNote").classList.add("on");$("tabReview").classList.remove("on");$("noteView").classList.remove("hide");$("reviewView").classList.add("hide");renderList();}
   function showReview(){$("tabReview").classList.add("on");$("tabNote").classList.remove("on");$("reviewView").classList.remove("hide");$("noteView").classList.add("hide");renderReview();}
-  function reflectUrlState(){ if(syncUrl){$("syncUrl").value=syncUrl;setSync("ok","同期先：設定済み");}else setSync("","同期先が未設定です（このまま使うと端末ごとの保存になります）"); }
+  function reflectUrlState(){ $("syncUrl").value=syncUrl; }
 
   function wire(){
     $("addBtn").onclick=addOrUpdate; $("cancelBtn").onclick=resetForm;
@@ -429,8 +429,6 @@
     $("hardOnly").onclick=function(){hardOnly=!hardOnly;$("hardBox").textContent=hardOnly?"☑":"☐";renderReview();};
     $("fMeaning").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addOrUpdate();}});
     $("toggleSettings").onclick=function(){$("settings").classList.toggle("hide");};
-    $("pullBtn").onclick=function(){if(!syncUrl){$("settings").classList.remove("hide");return;}pull();};
-    $("pushBtn").onclick=function(){if(!syncUrl){$("settings").classList.remove("hide");return;}push();};
     $("saveUrlBtn").onclick=async function(){
       var u=$("syncUrl").value.trim(); syncUrl=u; await localSet(URL_KEY,u); reflectUrlState();
       if(u){var ok=await pull(); if(!ok&&words.length){ if(confirm("読み込めませんでした。今あることばをスプレッドシートに保存してみますか？"))await push(); }}
@@ -444,7 +442,7 @@
 
   (async function init(){
     wire();
-    syncUrl=(await localGet(URL_KEY))||"";
+    syncUrl=(await localGet(URL_KEY))||SYNC_URL;
     var cached=await localGet(WORDS_KEY);
     if(cached){try{words=JSON.parse(cached).words||[];}catch(e){words=[];}}
     recountStats(); renderList(); reflectUrlState();
@@ -454,4 +452,3 @@
 </script>
 </body>
 </html>
-
