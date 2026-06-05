@@ -1,1 +1,457 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>なんでもことばノート ✈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0e2742; --navy2:#163a5f; --ink:#16273d; --ink-soft:#3a536f;
+    --sky1:#cfe9ff; --sky2:#eef7ff;
+    --orange:#ef5a2a; --blue:#2b7fd4; --amber:#e8a317; --green:#1f8a57; --red:#d6452f;
+    --board:#0c1f33; --board-amber:#ffcf57;
+    --paper:#ffffff; --line:#cfe0ef; --muted:#7e93a6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{
+    min-height:100vh;color:var(--ink);font-family:"Noto Sans JP",sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 38%,#fff 100%);
+    padding:16px 12px 60px;position:relative;overflow-x:hidden;
+  }
+  /* 背景：雲＋フライトパス */
+  .bgdeco{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .cloud{position:absolute;background:#fff;border-radius:50%;opacity:.55;filter:blur(2px);}
+  .c1{width:120px;height:42px;top:60px;left:-30px;box-shadow:60px 8px 0 -6px #fff,110px -6px 0 -12px #fff;}
+  .c2{width:90px;height:34px;top:160px;right:-20px;box-shadow:-46px 6px 0 -6px #fff,-90px -4px 0 -12px #fff;}
+  .c3{width:70px;height:26px;top:380px;left:8%;box-shadow:40px 6px 0 -6px #fff;opacity:.4;}
+  .path{position:absolute;top:0;left:0;width:100%;height:100%;}
+  .wrap{max-width:760px;margin:0 auto;position:relative;z-index:1;}
+
+  /* 出発案内板ヘッダー */
+  .board{background:linear-gradient(180deg,var(--navy) 0%,var(--board) 100%);border-radius:16px;padding:16px 18px;box-shadow:0 14px 30px -16px rgba(14,39,66,.7);border:1px solid #1d3consider;border:1px solid #1d3a5c;}
+  .brow{display:flex;align-items:center;gap:13px;}
+  .plane-badge{width:46px;height:46px;flex:none;border-radius:12px;background:var(--orange);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #b8421c;}
+  .plane-badge svg{width:28px;height:28px;fill:#fff;transform:rotate(-8deg);}
+  .eyebrow{font-family:"Russo One",sans-serif;font-size:.7rem;letter-spacing:.32em;color:var(--board-amber);}
+  h1{font-weight:900;font-size:1.5rem;color:#fff;letter-spacing:.02em;line-height:1.2;}
+  .tagline{font-size:.72rem;color:#9db8d4;margin-top:2px;}
+
+  /* ゲージ（stats） */
+  .gauges{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px;}
+  .gauge{background:rgba(255,255,255,.06);border:1px solid #25456a;border-radius:9px;padding:7px 4px;text-align:center;}
+  .gauge .num{font-family:"Russo One",sans-serif;font-size:1.2rem;line-height:1;color:#fff;}
+  .gauge .lbl{font-size:.6rem;color:#9db8d4;margin-top:3px;letter-spacing:.04em;}
+  .gauge.r .num{color:#ff9b86;} .gauge.a .num{color:var(--board-amber);} .gauge.g .num{color:#7fe3ad;}
+
+  /* 同期バー */
+  .syncbar{display:flex;align-items:center;gap:9px;background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:9px 13px;margin:14px 0 12px;font-size:.78rem;flex-wrap:wrap;box-shadow:0 6px 16px -12px rgba(14,39,66,.5);}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none;box-shadow:0 0 0 3px rgba(0,0,0,.04);}
+  .dot.ok{background:var(--green);} .dot.off{background:var(--amber);} .dot.err{background:var(--red);}
+  .syncbar .msg{flex:1;min-width:120px;color:var(--ink-soft);}
+  .syncbar a{color:var(--orange);cursor:pointer;font-weight:700;}
+  .mini{font-size:.72rem;padding:6px 11px;border:1.5px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;font-weight:700;color:var(--blue);}
+  .mini:active{background:#eef6ff;}
+
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:14px;box-shadow:0 8px 20px -14px rgba(14,39,66,.5);}
+  .panel h2{font-size:.8rem;letter-spacing:.06em;color:var(--orange);margin-bottom:9px;font-weight:700;display:flex;align-items:center;gap:6px;}
+  .panel h2::before{content:"✈";font-size:.9rem;}
+  label{display:block;font-size:.72rem;color:var(--ink-soft);font-weight:700;margin:8px 0 3px;letter-spacing:.03em;}
+  input[type=text],textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:.92rem;background:#fbfdff;color:var(--ink);resize:vertical;}
+  input:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(43,127,212,.15);background:#fff;}
+  textarea{min-height:44px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;}
+  .row>div{flex:1;min-width:140px;}
+  .btn{border:none;border-radius:10px;padding:10px 17px;font-family:inherit;font-weight:700;font-size:.9rem;cursor:pointer;}
+  .btn-main{background:var(--orange);color:#fff;box-shadow:0 4px 0 #b8421c;}
+  .btn-main:active{transform:translateY(2px);box-shadow:0 2px 0 #b8421c;}
+  .btn-blue{background:var(--blue);color:#fff;box-shadow:0 4px 0 #1c5a9c;}
+  .btn-blue:active{transform:translateY(2px);box-shadow:0 2px 0 #1c5a9c;}
+  .btn-ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink-soft);}
+  .formfoot{display:flex;gap:9px;margin-top:13px;align-items:center;flex-wrap:wrap;}
+  .hint{font-size:.72rem;color:var(--muted);}
+  .subtle{font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.5;}
+
+  .tabs{display:flex;gap:9px;margin:6px 0 14px;}
+  .tab{flex:1;padding:11px;text-align:center;font-weight:700;font-size:.92rem;border:1.5px solid var(--line);background:#fff;border-radius:11px;cursor:pointer;color:var(--ink-soft);display:flex;align-items:center;justify-content:center;gap:6px;}
+  .tab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;}
+  .controls input{flex:1;min-width:160px;}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{font-size:.74rem;font-weight:700;padding:6px 12px;border-radius:20px;border:1.5px solid var(--line);background:#fff;cursor:pointer;color:var(--ink-soft);}
+  .chip.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+  /* 搭乗券カード */
+  .pass{display:flex;background:var(--paper);border-radius:13px;margin-bottom:11px;overflow:hidden;box-shadow:0 8px 18px -12px rgba(14,39,66,.55);border:1px solid var(--line);}
+  .stub{width:62px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#fff;padding:8px 4px;position:relative;}
+  .pass.s0 .stub{background:linear-gradient(160deg,#e2654f,var(--red));}
+  .pass.s1 .stub{background:linear-gradient(160deg,#f0b748,var(--amber));}
+  .pass.s2 .stub{background:linear-gradient(160deg,#39a875,var(--green));}
+  .stub svg{width:24px;height:24px;fill:#fff;}
+  .stub .st{font-size:.6rem;font-weight:700;letter-spacing:.02em;writing-mode:vertical-rl;}
+  .stub::after{content:"";position:absolute;right:-1px;top:0;bottom:0;border-right:2px dashed #fff;opacity:.5;}
+  .pbody{flex:1;padding:12px 14px;min-width:0;}
+  .pbody .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+  .pbody .term{font-weight:900;font-size:1.28rem;color:var(--navy);}
+  .pbody .tono{font-family:"Russo One",sans-serif;font-size:.62rem;color:var(--muted);letter-spacing:.1em;}
+  .pbody .field{font-size:.85rem;margin-top:6px;}
+  .pbody .field b{color:var(--ink-soft);font-size:.68rem;letter-spacing:.04em;margin-right:5px;background:#eef4fb;padding:1px 6px;border-radius:5px;}
+  .pbody .src{font-size:.67rem;color:var(--muted);margin-top:7px;}
+  .pbody .acts{display:flex;gap:14px;margin-top:9px;}
+  .pbody .acts span{font-size:.74rem;color:var(--orange);cursor:pointer;font-weight:700;}
+  .pbody .acts span.del{color:var(--muted);}
+
+  .empty{text-align:center;color:var(--ink-soft);padding:34px 16px;font-size:.88rem;background:var(--paper);border:1.5px dashed var(--line);border-radius:14px;}
+  .empty .big{font-weight:900;font-size:1.15rem;color:var(--navy);margin-bottom:8px;}
+  .empty .pl{font-size:2rem;}
+
+  /* 復習＝フライト */
+  .deckbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:.8rem;color:var(--ink-soft);}
+  .deckbar .cnt{font-family:"Russo One",sans-serif;color:var(--navy);}
+  .switch{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink-soft);cursor:pointer;font-weight:700;}
+  /* 滑走路プログレス */
+  .runway{height:18px;background:#39516b;border-radius:10px;margin-bottom:14px;position:relative;overflow:visible;
+    background-image:repeating-linear-gradient(90deg,transparent 0 22px,rgba(255,255,255,.5) 22px 40px);background-size:auto 100%;}
+  .runway i{display:block;height:100%;background:linear-gradient(90deg,#2b7fd4,#5aa6ef);border-radius:10px;width:0;transition:width .35s;position:relative;}
+  .runway i::after{content:"✈";position:absolute;right:-9px;top:50%;transform:translateY(-52%);font-size:1.15rem;filter:drop-shadow(0 1px 1px rgba(0,0,0,.3));}
+  .flash{background:linear-gradient(180deg,#fff,#f3f9ff);border:1px solid var(--line);border-radius:18px;padding:28px 20px;min-height:250px;display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer;box-shadow:0 12px 26px -16px rgba(14,39,66,.6);}
+  .flash .prompt{font-size:.74rem;color:var(--orange);letter-spacing:.06em;font-weight:700;margin-bottom:14px;}
+  .flash .prompt::before{content:"🛫 ";}
+  .flash .fterm{font-weight:900;font-size:2.1rem;letter-spacing:.04em;color:var(--navy);}
+  .flash .tap{font-size:.72rem;color:var(--muted);margin-top:16px;}
+  .flash .reveal{text-align:left;}
+  .flash .reveal .fld{font-size:.9rem;margin:7px 0;border-bottom:1px dotted var(--line);padding-bottom:7px;}
+  .flash .reveal .fld b{display:block;font-size:.67rem;color:var(--orange);letter-spacing:.05em;margin-bottom:1px;}
+  .flash .reveal .fterm2{font-weight:900;font-size:1.5rem;margin-bottom:10px;color:var(--navy);}
+  .grade{display:flex;gap:8px;margin-top:14px;}
+  .grade button{flex:1;padding:13px 0;border:none;border-radius:11px;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;color:#fff;line-height:1.25;}
+  .grade button small{display:block;font-size:.62rem;opacity:.9;font-weight:500;}
+  .g0{background:var(--red);box-shadow:0 4px 0 #ab3526;} .g1{background:var(--amber);box-shadow:0 4px 0 #b97f0e;} .g2{background:var(--green);box-shadow:0 4px 0 #166c43;}
+  .grade button:active{transform:translateY(2px);}
+
+  .notice{font-size:.72rem;color:var(--ink-soft);text-align:center;margin-top:18px;}
+  .reset{font-size:.72rem;color:var(--muted);text-decoration:underline;cursor:pointer;background:none;border:none;}
+  .hide{display:none!important;}
+</style>
+</head>
+<body>
+<div class="bgdeco">
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <svg class="path" viewBox="0 0 760 900" preserveAspectRatio="none">
+    <path d="M-20 520 Q 220 360 420 430 T 800 300" fill="none" stroke="#7fb4e6" stroke-width="2" stroke-dasharray="3 9" opacity="0.45"/>
+  </svg>
+</div>
+
+<div class="wrap">
+  <header class="board">
+    <div class="brow">
+      <div class="plane-badge">
+        <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+      </div>
+      <div>
+        <div class="eyebrow">WORD FLIGHT LOG</div>
+        <h1>なんでもことばノート</h1>
+        <div class="tagline">ことばを世界に飛ばそう ✈ 駐機 → 離陸 → 巡航</div>
+      </div>
+    </div>
+    <div class="gauges">
+      <div class="gauge"><div class="num" id="stTotal">0</div><div class="lbl">ことば</div></div>
+      <div class="gauge r"><div class="num" id="stNew">0</div><div class="lbl">駐機中</div></div>
+      <div class="gauge a"><div class="num" id="stLearn">0</div><div class="lbl">離陸中</div></div>
+      <div class="gauge g"><div class="num" id="stMaster">0</div><div class="lbl">巡航中</div></div>
+    </div>
+  </header>
+
+  <div class="syncbar">
+    <span class="dot" id="syncDot"></span>
+    <span class="msg" id="syncMsg">同期先が未設定です（このまま使うと端末ごとの保存になります）</span>
+    <button class="mini" id="pullBtn">読み込み</button>
+    <button class="mini" id="pushBtn">保存</button>
+    <a id="toggleSettings">設定</a>
+  </div>
+
+  <div class="panel hide" id="settings">
+    <h2>同期設定（Googleスプレッドシート）</h2>
+    <label>ウェブアプリの URL（Apps Script で発行したもの）</label>
+    <input type="text" id="syncUrl" placeholder="https://script.google.com/macros/s/..../exec">
+    <div class="formfoot">
+      <button class="btn btn-blue" id="saveUrlBtn">この URL で同期する</button>
+      <button class="btn btn-ghost" id="clearUrlBtn">同期をやめる</button>
+    </div>
+    <div class="subtle">同じ URL を各端末のこのアプリに貼れば、どの端末からも同じことばを読み書きできます。URL はパスワードと同じ扱いに。</div>
+    <h2 style="margin-top:16px;">CSV（手動バックアップ）</h2>
+    <div class="formfoot">
+      <button class="btn btn-ghost" id="csvOutBtn">CSVを書き出す</button>
+      <button class="btn btn-ghost" id="csvInBtn">CSVを取り込む</button>
+    </div>
+    <textarea id="csvArea" class="hide" placeholder="ここに CSV が表示されます。取り込みのときは CSV を貼って『取り込み実行』。"></textarea>
+    <div class="formfoot hide" id="csvInFoot">
+      <button class="btn btn-main" id="csvDoImport">取り込み実行</button>
+      <span class="hint">※ 取り込むと今の内容は置き換わります</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" id="tabNote">🗂 ことばリスト</div>
+    <div class="tab" id="tabReview">🛫 フライト（復習）</div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div id="noteView">
+    <div class="panel">
+      <h2 id="formTitle">あたらしいことばを搭乗させる</h2>
+      <label>ことば（必須）</label>
+      <input type="text" id="fTerm" placeholder="例：建設的">
+      <label>① 自分の言葉で一言（必須）</label>
+      <input type="text" id="fMeaning" placeholder="例：前向きに作り上げる感じ">
+      <div class="row">
+        <div><label>② 具体例</label><textarea id="fExample" placeholder="例：批判で終わらず改善案を出す"></textarea></div>
+        <div><label>③ 対義語・類義語</label><textarea id="fOpp" placeholder="例：⇔破壊的／否定的"></textarea></div>
+      </div>
+      <label>④ 本文の一文</label>
+      <textarea id="fSentence" placeholder="その語が出てきた文をそのまま写す"></textarea>
+      <label>出典（どこで見つけた？）</label>
+      <input type="text" id="fSource" placeholder="例：予習シリーズ9回／組分け／NN">
+      <div class="formfoot">
+        <button class="btn btn-main" id="addBtn">✈ 搭乗させる</button>
+        <button class="btn btn-ghost hide" id="cancelBtn">やめる</button>
+        <span class="hint" id="sampleHint">迷ったら <a href="#" id="sampleLink" style="color:var(--orange)">お手本を1つ入れる</a></span>
+      </div>
+    </div>
+    <div class="controls">
+      <input type="text" id="search" placeholder="🔍 ことば・意味で検索">
+      <div class="chips">
+        <span class="chip on" data-f="all">すべて</span>
+        <span class="chip" data-f="0">駐機中</span>
+        <span class="chip" data-f="1">離陸中</span>
+        <span class="chip" data-f="2">巡航中</span>
+      </div>
+    </div>
+    <div id="list"></div>
+  </div>
+
+  <!-- REVIEW VIEW -->
+  <div id="reviewView" class="hide">
+    <div class="deckbar">
+      <span class="cnt" id="deckCount">0 / 0</span>
+      <span class="switch" id="hardOnly"><span id="hardBox">☐</span> 苦手だけ（駐機・離陸）</span>
+    </div>
+    <div class="runway"><i id="progBar"></i></div>
+    <div id="flashHost"></div>
+  </div>
+
+  <div class="notice">
+    ことばは同期先（または端末内）に保存されます。
+    <button class="reset" id="resetBtn">すべて消す</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var WORDS_KEY="abstract-vocab-v1";   // データ形式は同じなので前のデータも引き継げます
+  var URL_KEY="abstract-vocab-syncurl";
+  var hasStorage=!!(window.storage&&window.storage.get);
+  var words=[], editingId=null, filter="all", search="";
+  var deck=[], deckPos=0, flipped=false, hardOnly=false;
+  var syncUrl="";
+  var $=function(id){return document.getElementById(id);};
+  function esc(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+  function statusName(s){return s===2?"巡航中":(s===1?"離陸中":"駐機中");}
+  var PLANE='<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
+
+  async function localGet(key){ if(!hasStorage)return null; try{var r=await window.storage.get(key,false);return r&&r.value?r.value:null;}catch(e){return null;} }
+  async function localSet(key,val){ if(!hasStorage)return; try{await window.storage.set(key,val,false);}catch(e){} }
+
+  function setSync(state,msg){ $("syncDot").className="dot"+(state?" "+state:""); $("syncMsg").textContent=msg; }
+
+  function pull(){
+    return new Promise(function(resolve){
+      if(!syncUrl){ resolve(false); return; }
+      setSync("","読み込み中…"); var done=false;
+      fetch(syncUrl,{method:"GET"}).then(function(r){return r.json();}).then(function(d){
+        if(done)return; done=true;
+        if(d&&d.ok){ words=d.words||[]; afterData(); setSync("ok","同期OK（"+nowStr()+" 読み込み）"); resolve(true); }
+        else jsonp(resolve);
+      }).catch(function(){ if(!done)jsonp(resolve); });
+      setTimeout(function(){ if(!done)jsonp(resolve); },4000);
+    });
+  }
+  function jsonp(resolve){
+    var cb="vocabcb_"+Date.now(); var s=document.createElement("script");
+    var t=setTimeout(function(){cleanup();setSync("off","読み込めませんでした（端末内データを表示中）");resolve(false);},8000);
+    function cleanup(){try{delete window[cb];}catch(e){window[cb]=undefined;}if(s.parentNode)s.parentNode.removeChild(s);clearTimeout(t);}
+    window[cb]=function(d){cleanup();if(d&&d.ok){words=d.words||[];afterData();setSync("ok","同期OK（"+nowStr()+" 読み込み）");resolve(true);}else{setSync("err","読み込みに失敗しました");resolve(false);}};
+    s.src=syncUrl+(syncUrl.indexOf("?")<0?"?":"&")+"callback="+cb+"&t="+Date.now();
+    s.onerror=function(){cleanup();setSync("off","読み込めませんでした（端末内データを表示中）");resolve(false);};
+    document.body.appendChild(s);
+  }
+  async function push(){
+    await localSet(WORDS_KEY, JSON.stringify({words:words}));
+    if(!syncUrl)return; setSync("","保存中…");
+    try{ await fetch(syncUrl,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({words:words})}); setSync("ok","同期OK（"+nowStr()+" 保存）"); }
+    catch(e){ setSync("off","保存を送信しました（確認は『読み込み』で）"); }
+  }
+  function nowStr(){var d=new Date();function p(n){return(n<10?"0":"")+n;}return p(d.getHours())+":"+p(d.getMinutes());}
+
+  function afterData(){ recountStats(); renderList(); if(!$("reviewView").classList.contains("hide"))renderReview(); }
+  function recountStats(){
+    var n=0,l=0,m=0; words.forEach(function(w){if(w.status===2)m++;else if(w.status===1)l++;else n++;});
+    $("stTotal").textContent=words.length;$("stNew").textContent=n;$("stLearn").textContent=l;$("stMaster").textContent=m;
+  }
+  function renderList(){
+    var host=$("list"); host.innerHTML="";
+    var q=search.trim().toLowerCase();
+    var arr=words.filter(function(w){
+      if(filter!=="all"&&String(w.status)!==filter)return false;
+      if(q&&((w.term+" "+w.meaning).toLowerCase().indexOf(q)<0))return false;
+      return true;
+    }).sort(function(a,b){return (b.created||0)-(a.created||0);});
+    if(arr.length===0){
+      host.innerHTML='<div class="empty"><div class="pl">🛬</div><div class="big">'+(words.length===0?"まだ搭乗ゼロ！":"見つかりませんでした")+'</div>'+
+        (words.length===0?"説明文を読んで、わからなかったことばを1つ搭乗させよう。":"検索やフィルターを変えてみてね。")+'</div>';
+      return;
+    }
+    arr.forEach(function(w){
+      var d=document.createElement("div"); d.className="pass s"+w.status;
+      var f='<div class="field"><b>意味</b>'+esc(w.meaning)+'</div>';
+      if(w.example)f+='<div class="field"><b>具体例</b>'+esc(w.example)+'</div>';
+      if(w.opp)f+='<div class="field"><b>対義語</b>'+esc(w.opp)+'</div>';
+      if(w.sentence)f+='<div class="field"><b>本文</b>「'+esc(w.sentence)+'」</div>';
+      d.innerHTML=
+        '<div class="stub">'+PLANE+'<span class="st">'+statusName(w.status)+'</span></div>'+
+        '<div class="pbody"><div class="top"><span class="term">'+esc(w.term)+'</span><span class="tono">BOARDING</span></div>'+
+        f+(w.source?'<div class="src">出典：'+esc(w.source)+'</div>':'')+
+        '<div class="acts"><span data-edit="'+w.id+'">編集</span><span class="del" data-del="'+w.id+'">削除</span></div></div>';
+      host.appendChild(d);
+    });
+  }
+  function resetForm(){
+    editingId=null; ["fTerm","fMeaning","fExample","fOpp","fSentence","fSource"].forEach(function(id){$(id).value="";});
+    $("formTitle").textContent="あたらしいことばを搭乗させる"; $("addBtn").textContent="✈ 搭乗させる";
+    $("cancelBtn").classList.add("hide"); $("sampleHint").classList.remove("hide");
+  }
+  async function addOrUpdate(){
+    var term=$("fTerm").value.trim(), meaning=$("fMeaning").value.trim();
+    if(!term){$("fTerm").focus();return;} if(!meaning){$("fMeaning").focus();return;}
+    var data={term:term,meaning:meaning,example:$("fExample").value.trim(),opp:$("fOpp").value.trim(),sentence:$("fSentence").value.trim(),source:$("fSource").value.trim()};
+    if(editingId){var w=words.find(function(x){return x.id===editingId;});if(w)Object.assign(w,data);}
+    else words.push(Object.assign({id:uid(),status:0,created:Date.now(),reviews:0},data));
+    resetForm(); recountStats(); renderList(); await push();
+  }
+  function startEdit(id){
+    var w=words.find(function(x){return x.id===id;}); if(!w)return; editingId=id;
+    $("fTerm").value=w.term;$("fMeaning").value=w.meaning;$("fExample").value=w.example||"";$("fOpp").value=w.opp||"";$("fSentence").value=w.sentence||"";$("fSource").value=w.source||"";
+    $("formTitle").textContent="ことばを編集する";$("addBtn").textContent="更新する";$("cancelBtn").classList.remove("hide");$("sampleHint").classList.add("hide");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  async function del(id){
+    var w=words.find(function(x){return x.id===id;}); if(!w)return;
+    if(!confirm("「"+w.term+"」を降ろしますか？（削除）"))return;
+    words=words.filter(function(x){return x.id!==id;}); if(editingId===id)resetForm();
+    recountStats(); renderList(); await push();
+  }
+  function addSample(){
+    if(words.some(function(w){return w.term==="建設的";}))return;
+    words.push({id:uid(),status:0,created:Date.now(),reviews:0,term:"建設的",meaning:"前向きに作り上げようとする様子",example:"批判で終わらず、こう直せばいいと改善案を出す",opp:"⇔ 破壊的／否定的",sentence:"批判ばかりでなく、もっと建設的な意見がほしい。",source:"お手本"});
+    recountStats(); renderList(); push();
+  }
+
+  function buildDeck(){
+    var pool=words.slice(); if(hardOnly)pool=pool.filter(function(w){return w.status<2;});
+    function sh(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+    deck=sh(pool.filter(function(w){return w.status<2;})).concat(sh(pool.filter(function(w){return w.status===2;})));
+    deckPos=0; flipped=false;
+  }
+  function renderReview(){ buildDeck(); drawCard(); }
+  function drawCard(){
+    var host=$("flashHost");
+    if(deck.length===0){ host.innerHTML='<div class="empty"><div class="pl">🛩</div><div class="big">飛ばすことばがありません</div>'+(words.length===0?"まず「ことばリスト」で搭乗させてね。":"「苦手だけ」をはずすと巡航中も飛ばせます。")+'</div>'; $("deckCount").textContent="0 / 0"; $("progBar").style.width="0%"; return; }
+    if(deckPos>=deck.length){ host.innerHTML='<div class="empty"><div class="pl">🛬✨</div><div class="big">全便 着陸！おつかれさま</div><button class="btn btn-main" id="againBtn" style="margin-top:12px;">もう一周 飛ぶ</button></div>'; $("deckCount").textContent=deck.length+" / "+deck.length; $("progBar").style.width="100%"; $("againBtn").onclick=renderReview; return; }
+    var w=deck[deckPos]; $("deckCount").textContent=(deckPos+1)+" / "+deck.length; $("progBar").style.width=Math.round(deckPos/deck.length*100)+"%";
+    if(!flipped){
+      host.innerHTML='<div class="flash" id="flashCard"><div class="prompt">言いかえ・具体例・対義語を言ってみよう</div><div class="fterm">'+esc(w.term)+'</div><div class="tap">タップして答えを見る</div></div>';
+      $("flashCard").onclick=function(){flipped=true;drawCard();};
+    }else{
+      var f='<div class="fterm2">'+esc(w.term)+'</div><div class="fld"><b>意味</b>'+esc(w.meaning)+'</div>';
+      if(w.example)f+='<div class="fld"><b>具体例</b>'+esc(w.example)+'</div>';
+      if(w.opp)f+='<div class="fld"><b>対義語・類義語</b>'+esc(w.opp)+'</div>';
+      if(w.sentence)f+='<div class="fld"><b>本文</b>「'+esc(w.sentence)+'」</div>';
+      host.innerHTML='<div class="flash reveal">'+f+'</div><div class="grade">'+
+        '<button class="g0" data-g="0">駐機中<small>まだ</small></button>'+
+        '<button class="g1" data-g="1">離陸中<small>あやしい</small></button>'+
+        '<button class="g2" data-g="2">巡航中<small>覚えた</small></button></div>';
+      Array.prototype.forEach.call(host.querySelectorAll(".grade button"),function(b){b.onclick=function(){grade(parseInt(b.getAttribute("data-g"),10));};});
+    }
+  }
+  async function grade(g){
+    var w=deck[deckPos]; var real=words.find(function(x){return x.id===w.id;});
+    if(real){real.status=g;real.reviews=(real.reviews||0)+1;}
+    recountStats(); deckPos++; flipped=false; drawCard(); await push();
+  }
+
+  function toCSV(){
+    var H=["id","term","meaning","example","opp","sentence","source","status","created","reviews"];
+    function q(v){v=(v==null?"":String(v));return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+    var lines=[H.join(",")]; words.forEach(function(w){lines.push(H.map(function(h){return q(w[h]);}).join(","));}); return lines.join("\n");
+  }
+  function parseCSV(text){
+    var rows=[],row=[],cur="",i=0,inQ=false,c;
+    while(i<text.length){c=text[i];
+      if(inQ){if(c==='"'){if(text[i+1]==='"'){cur+='"';i++;}else inQ=false;}else cur+=c;}
+      else{if(c==='"')inQ=true;else if(c===','){row.push(cur);cur="";}else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur="";}else if(c==='\r'){}else cur+=c;}
+      i++;
+    }
+    if(cur!==""||row.length){row.push(cur);rows.push(row);}
+    if(!rows.length)return []; var H=rows.shift();
+    return rows.filter(function(r){return r.join("").trim()!=="";}).map(function(r){
+      var o={};H.forEach(function(h,idx){o[h.trim()]=r[idx]!==undefined?r[idx]:"";});
+      o.status=Number(o.status)||0;o.created=Number(o.created)||Date.now();o.reviews=Number(o.reviews)||0;if(!o.id)o.id=uid();return o;
+    });
+  }
+
+  function showNote(){$("tabNote").classList.add("on");$("tabReview").classList.remove("on");$("noteView").classList.remove("hide");$("reviewView").classList.add("hide");renderList();}
+  function showReview(){$("tabReview").classList.add("on");$("tabNote").classList.remove("on");$("reviewView").classList.remove("hide");$("noteView").classList.add("hide");renderReview();}
+  function reflectUrlState(){ if(syncUrl){$("syncUrl").value=syncUrl;setSync("ok","同期先：設定済み");}else setSync("","同期先が未設定です（このまま使うと端末ごとの保存になります）"); }
+
+  function wire(){
+    $("addBtn").onclick=addOrUpdate; $("cancelBtn").onclick=resetForm;
+    $("sampleLink").onclick=function(e){e.preventDefault();addSample();};
+    $("tabNote").onclick=showNote; $("tabReview").onclick=showReview;
+    $("search").oninput=function(e){search=e.target.value;renderList();};
+    document.querySelectorAll(".chip").forEach(function(c){c.onclick=function(){document.querySelectorAll(".chip").forEach(function(x){x.classList.remove("on");});c.classList.add("on");filter=c.getAttribute("data-f");renderList();};});
+    $("list").onclick=function(e){var ed=e.target.getAttribute("data-edit"),dl=e.target.getAttribute("data-del");if(ed)startEdit(ed);if(dl)del(dl);};
+    $("hardOnly").onclick=function(){hardOnly=!hardOnly;$("hardBox").textContent=hardOnly?"☑":"☐";renderReview();};
+    $("fMeaning").addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addOrUpdate();}});
+    $("toggleSettings").onclick=function(){$("settings").classList.toggle("hide");};
+    $("pullBtn").onclick=function(){if(!syncUrl){$("settings").classList.remove("hide");return;}pull();};
+    $("pushBtn").onclick=function(){if(!syncUrl){$("settings").classList.remove("hide");return;}push();};
+    $("saveUrlBtn").onclick=async function(){
+      var u=$("syncUrl").value.trim(); syncUrl=u; await localSet(URL_KEY,u); reflectUrlState();
+      if(u){var ok=await pull(); if(!ok&&words.length){ if(confirm("読み込めませんでした。今あることばをスプレッドシートに保存してみますか？"))await push(); }}
+    };
+    $("clearUrlBtn").onclick=async function(){syncUrl="";$("syncUrl").value="";await localSet(URL_KEY,"");reflectUrlState();};
+    $("csvOutBtn").onclick=function(){var ta=$("csvArea");ta.classList.remove("hide");$("csvInFoot").classList.add("hide");ta.value=toCSV();ta.select();};
+    $("csvInBtn").onclick=function(){var ta=$("csvArea");ta.classList.remove("hide");$("csvInFoot").classList.remove("hide");ta.value="";ta.placeholder="ここに CSV を貼り付けて『取り込み実行』";ta.focus();};
+    $("csvDoImport").onclick=async function(){var txt=$("csvArea").value.trim();if(!txt)return;var parsed;try{parsed=parseCSV(txt);}catch(e){alert("CSVを読み取れませんでした");return;}if(!confirm("今の内容を、取り込んだ"+parsed.length+"件に置き換えます。よろしいですか？"))return;words=parsed;recountStats();renderList();$("csvArea").classList.add("hide");$("csvInFoot").classList.add("hide");await push();};
+    $("resetBtn").onclick=async function(){if(!confirm("ことばを全部消します。よろしいですか？"))return;words=[];resetForm();recountStats();renderList();if(!$("reviewView").classList.contains("hide"))renderReview();await push();};
+  }
+
+  (async function init(){
+    wire();
+    syncUrl=(await localGet(URL_KEY))||"";
+    var cached=await localGet(WORDS_KEY);
+    if(cached){try{words=JSON.parse(cached).words||[];}catch(e){words=[];}}
+    recountStats(); renderList(); reflectUrlState();
+    if(syncUrl)await pull();
+  })();
+})();
+</script>
+</body>
+</html>
+
